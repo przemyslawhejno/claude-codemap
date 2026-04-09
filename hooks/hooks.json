@@ -1,0 +1,17 @@
+{
+  "description": "Track file changes for incremental index updates",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/track-changes.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
