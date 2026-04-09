@@ -1,0 +1,16 @@
+{
+  "name": "claude-project-index",
+  "description": "Generates and maintains a compact project index in .claude/index/ for fast file lookup, reducing token usage and speeding up navigation",
+  "version": "0.1.0",
+  "author": {
+    "name": "Przemyslaw Hejno"
+  },
+  "license": "MIT",
+  "keywords": [
+    "index",
+    "navigation",
+    "token-efficiency",
+    "project-map",
+    "codebase-index"
+  ]
+}
