@@ -68,7 +68,32 @@ Write to .claude/index/api-routes.md per the format spec in the index-generator 
     - `## Structure` — top-level directories with short descriptions
     - `## Sub-projects` — pointers (omit section if none)
     - `## Topics` — list with `[topic-name](topic-name.md) — description`
+    - **Always include `symbols` as the first entry in the Topics list:**
+      `- [symbols](symbols.md) — flat name → path lookup for all defined symbols`
+      This applies even for small-project fallback with a single `overview.md` topic.
 11. If any writer failed, add a `⚠️` note next to the topic in the Topics list: `- [api-routes](api-routes.md) — …  ⚠️ generation failed — re-run /index`
+
+### Phase 4b — Compose symbols.md from writer slices
+
+After all writers have reported and before cleanup, build the flat symbol index.
+
+1. Concatenate the `symbols` block from every writer's report into one list of lines.
+2. Deduplicate — drop any line identical (byte-for-byte after trimming whitespace) to another. Two writers reporting the same file is a rare edge case but handle it silently.
+3. Sort alphabetically by the `name` field (between `]` and `→`), case-insensitive. Ties: order by path.
+4. Apply the 3000-line cap. If the list is longer:
+   - Keep the first 3000 lines
+   - Append a single trailing line: `> N symbols omitted — fall back to Grep for uncommon names` where N is the number dropped
+5. Write `.claude/index/symbols.md` with this header and the processed list:
+
+```
+# Symbols
+Generated: <today's date in YYYY-MM-DD>
+Count: <number of symbol lines, not counting the truncation note if present>
+
+<sorted lines here>
+```
+
+Format spec: see the `symbols.md Format` section of the `index-generator` skill.
 
 ### Phase 5 — Cleanup and report
 
@@ -80,6 +105,7 @@ Write to .claude/index/api-routes.md per the format spec in the index-generator 
     - Sub-projects detected (paths)
     - Writer failures (if any)
     - Fallback-to-flat (if triggered)
+    - Symbols indexed (count from symbols.md header; note if truncation applied)
 
 ## Guardrails
 
