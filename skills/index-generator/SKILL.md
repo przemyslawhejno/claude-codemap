@@ -69,6 +69,49 @@ path/to/file.ext — what this file does
 path/to/other.ext — what this file does
 ```
 
+## symbols.md Format
+
+Flat, alphabetical-by-name symbol index for one-read "where is X?" lookups. Produced once per rebuild and kept in lockstep with topic files on `/index update`.
+
+```
+# Symbols
+Generated: YYYY-MM-DD
+Count: N
+
+[class] AuthService → src/auth/service.ts:12
+[cmd]   index → commands/index.md:1
+[component] LoginForm → web/src/LoginForm.tsx:8
+[const] MAX_RETRIES → src/config.ts:5
+[enum]  Status → src/types.ts:20
+[fn]    parseConfig → src/config.ts:42
+[route] GET /users → src/api/users.ts:15
+[type]  User → src/types.ts:3
+```
+
+**Line format:** `[kind] name → path:line`
+
+**Kinds (fixed set of 8):**
+- `fn` — functions, methods
+- `class` — classes
+- `type` — types, interfaces, type aliases
+- `enum` — enums
+- `route` — HTTP routes / endpoints (`METHOD /path`)
+- `const` — top-level constants
+- `component` — React / Vue / Svelte components
+- `cmd` — CLI commands / slash commands
+
+**Ordering:** alphabetical by `name`, case-insensitive.
+
+**Size cap:** 3000 symbols. Past cap, truncate and append a final line:
+
+```
+> N symbols omitted — fall back to Grep for uncommon names
+```
+
+**Scope:** named declarations only. Skip local variables, inline lambdas, test cases, doc anchors.
+
+**Usage:** the main session reads `symbols.md` first when the user's question names a specific symbol; falls back to INDEX → topic flow for conceptual questions.
+
 ## Skip List (Structure Scan)
 
 Skip these during Glob/Grep:
