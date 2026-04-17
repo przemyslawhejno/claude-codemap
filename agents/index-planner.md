@@ -35,7 +35,7 @@ You are the project index planner. Your job: scan the project, decide the topic 
 
 ### Phase 2 — Topic planning
 
-5. Decide 5–10 cohesive topics. A topic is a group of files that relate to each other (API routes, data models, UI components, CLI tools, etc.). Name files descriptively (`api-routes.md`, `data-models.md`).
+5. Decide 3–10 cohesive topics (aim for 5–8 when the project supports it). A topic is a group of files that relate to each other (API routes, data models, UI components, CLI tools, etc.). Name files descriptively (`api-routes.md`, `data-models.md`).
 6. For each topic, hold in your context: `name`, `files` (explicit paths or globs), `description` (one-line).
 7. **Small-project fallback:** if you cannot find at least 3 meaningful groups, create a single `overview.md` topic containing all code files. Log this decision in your final report.
 
@@ -51,14 +51,14 @@ You are the project index planner. Your job: scan the project, decide the topic 
 Example writer dispatch prompt body:
 
 ```
-Write .claude/index/api-routes.md for topic "api-routes".
+Topic: api-routes
 Detail level: compact
 Description: HTTP route handlers and request schemas.
 Files:
 - src/api/users.ts
 - src/api/orders.ts
 - src/api/auth.ts
-Follow the format spec in the index-generator skill. Report back file_count, skipped, truncated, fallback_to_compact.
+Write to .claude/index/api-routes.md per the format spec in the index-generator skill. Report back file_count, skipped, truncated, fallback_to_compact.
 ```
 
 ### Phase 4 — Assemble INDEX.md

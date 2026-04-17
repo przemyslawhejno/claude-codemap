@@ -7,7 +7,7 @@ Project index command. Manages `.claude/index/` for fast file navigation.
 
 **Parse arguments from `$ARGUMENTS`:**
 
-- **No arguments or `rebuild`**: Full rebuild (planner + parallel writers)
+- **No arguments**: Full rebuild (planner + parallel writers)
 - **`--compact`**: Force compact detail level on rebuild
 - **`--detailed`**: Force detailed detail level on rebuild
 - **`status`**: Show index status, no changes

@@ -26,7 +26,7 @@ claude plugins install /path/to/claude-project-index
 2. On each question, Claude reads `INDEX.md`, picks relevant topics, and goes directly to source files.
 3. A PostToolUse hook tracks every file you edit to `.claude/index/pending.md`.
 4. When Claude sees `pending.md`, it acts per the threshold:
-   - **≤ 15 files** → updates affected topics inline in the current session
+   - **≤ 15 files** → updates affected topics inline in the current session (automatic, no command needed — handled by the `project-index` skill)
    - **16–50 files** → suggests `/index update` (Haiku-powered, runs in parallel)
    - **> 50 files** → suggests `/index` full rebuild
 5. The index lives in your repo — commit it so it persists across sessions.
@@ -35,7 +35,7 @@ claude plugins install /path/to/claude-project-index
 
 Full rebuild (`/index`) uses a two-tier agent pipeline to keep costs down:
 
-- **`index-planner`** (Sonnet) — scans structure, decides 5-10 topics, dispatches writers, assembles INDEX.md.
+- **`index-planner`** (Sonnet) — scans structure, decides 3–10 topics, dispatches writers, assembles INDEX.md.
 - **`index-writer`** (Haiku) — one per topic, reads the topic's files and writes the topic file. Run in parallel.
 
 Incremental updates (`/index update`) skip the planner — Haiku writers regenerate only the affected topics.
