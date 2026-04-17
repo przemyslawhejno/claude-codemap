@@ -17,10 +17,11 @@ Fast file lookup via pre-built index. Cuts token usage 60-80% on navigation.
 ## Pending Changes
 
 If `.claude/index/pending.md` exists:
-- Read it — files changed since last update
-- If changes affect current topic, update that topic file
-- If >15 unique files → suggest `/index` full rebuild
-- Delete pending.md after updating
+- Read it — files changed since last index update.
+- Deduplicate paths.
+- **≤ 15 unique files** → for each changed file, find its topic file (match paths inside topic files), re-read the source, update that section inline. Then delete `pending.md`.
+- **16–50 unique files** → suggest `/index update` (Haiku writers regenerate affected topics, cheap and fast).
+- **> 50 unique files** → suggest `/index` full rebuild.
 
 ## After Task
 
