@@ -22,8 +22,11 @@ claude plugins install /path/to/claude-project-index
 
 1. `/index` scans your project and generates `.claude/index/` with:
    - `INDEX.md` — lightweight table of contents (~50-80 lines)
+   - `symbols.md` — flat name → path lookup for every defined symbol (one-read answer to "where is X?")
    - Topic files — grouped by domain (`api-routes.md`, `data-models.md`, etc.)
-2. On each question, Claude reads `INDEX.md`, picks relevant topics, and goes directly to source files.
+2. On each question:
+   - If it names a specific symbol (function, class, route, etc.), Claude reads `symbols.md` and jumps straight to the source file.
+   - Otherwise Claude reads `INDEX.md`, picks relevant topics, and goes directly to source files.
 3. A PostToolUse hook tracks every file you edit to `.claude/index/pending.md`.
 4. When Claude sees `pending.md`, it acts per the threshold:
    - **≤ 15 files** → updates affected topics inline in the current session (automatic, no command needed — handled by the `project-index` skill)
@@ -58,8 +61,8 @@ Sub-projects (detected by `.git/`, `.claude/index/`, or language-specific marker
 | Component | File | Purpose |
 |---|---|---|
 | Command | `commands/index.md` | `/index` slash command |
-| Skill | `skills/project-index/SKILL.md` | How Claude uses the index |
-| Skill | `skills/index-generator/SKILL.md` | Shared format reference |
+| Skill | `skills/project-index/SKILL.md` | How Claude uses the index (INDEX.md + symbols.md lookup) |
+| Skill | `skills/index-generator/SKILL.md` | Shared format reference (INDEX.md, symbols.md, topic files) |
 | Agent | `agents/index-planner.md` | Sonnet planner — dispatches writers |
 | Agent | `agents/index-writer.md` | Haiku per-topic worker |
 | Hook | `hooks/track-changes.sh` | Tracks file edits to pending.md |
