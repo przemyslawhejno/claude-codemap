@@ -37,8 +37,23 @@ Project index command. Manages `.claude/index/` for fast file navigation.
    - `files` — the topic's **full current file list** (existing entries from the topic file, merged with any newly-changed paths mapped to this topic)
    - `detail_level` — read from INDEX.md header
    - `description` — read from INDEX.md topic line
-9. After all writers complete, delete `.claude/index/pending.md`.
-10. Report: topics updated (count + names), files processed, unmapped paths (if any, with a note that running full `/index` may be needed).
+9. **Rewrite `.claude/index/symbols.md` partially:**
+   1. Read the existing `.claude/index/symbols.md` if present. If absent, skip this step entirely — next full `/index` rebuild will create it.
+   2. Collect the list of file paths belonging to the affected topics (the same list passed to the writers).
+   3. From the existing symbols.md body, drop every line whose `path` portion (between `→ ` and `:`) matches any file in that list. Keep all other lines.
+   4. Append the fresh `symbols` blocks from the re-run writers' reports.
+   5. Deduplicate (byte-for-byte after trimming).
+   6. Sort alphabetically by name, case-insensitive.
+   7. Apply the 3000-line cap with the truncation note (`> N symbols omitted — fall back to Grep for uncommon names`) if needed.
+   8. Rewrite `.claude/index/symbols.md` with an updated header:
+      ```
+      # Symbols
+      Generated: <today's date>
+      Count: <new count>
+      ```
+10. After all writers complete, delete `.claude/index/pending.md`.
+11. Report: topics updated (count + names), files processed, unmapped paths (if any, with a note that running full `/index` may be needed).
+    Also report: symbols.md status (rewritten / skipped because not present / unchanged if no affected symbols).
 
 ## If rebuild (default, or with `--compact` / `--detailed`)
 
