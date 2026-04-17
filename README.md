@@ -8,28 +8,37 @@ Claude Code plugin that generates a compact project index for fast file lookup. 
 claude plugins install /path/to/claude-project-index
 ```
 
-## Usage
+## When to run what
 
-```bash
-# First time — generate index
-/index
-
-# Check status
-/index status
-
-# Force detail level
-/index --compact
-/index --detailed
-```
+| Command | When to use | What runs |
+|---|---|---|
+| `/index` | First time in a project, or when the index is stale/wrong | Full rebuild: Sonnet planner + N parallel Haiku writers (one per topic) |
+| `/index update` | `pending.md` has many entries and you want a clean index without a full rebuild | Haiku writers only, for affected topics |
+| `/index status` | Anytime — quick health check | Reads INDEX.md header + counts pending entries |
+| `/index --compact` | Force compact detail level on rebuild | Same as `/index`, overrides auto-selection |
+| `/index --detailed` | Force detailed detail level on rebuild | Same as `/index`, overrides auto-selection |
 
 ## How it works
 
 1. `/index` scans your project and generates `.claude/index/` with:
-   - `INDEX.md` — lightweight table of contents (~50 lines)
+   - `INDEX.md` — lightweight table of contents (~50-80 lines)
    - Topic files — grouped by domain (`api-routes.md`, `data-models.md`, etc.)
-2. On each question, Claude reads `INDEX.md`, picks relevant topics, and goes directly to source files
-3. A PostToolUse hook tracks file changes to `pending.md` for incremental updates
-4. Index lives in your repo — commit it so it persists across sessions
+2. On each question, Claude reads `INDEX.md`, picks relevant topics, and goes directly to source files.
+3. A PostToolUse hook tracks every file you edit to `.claude/index/pending.md`.
+4. When Claude sees `pending.md`, it acts per the threshold:
+   - **≤ 15 files** → updates affected topics inline in the current session
+   - **16–50 files** → suggests `/index update` (Haiku-powered, runs in parallel)
+   - **> 50 files** → suggests `/index` full rebuild
+5. The index lives in your repo — commit it so it persists across sessions.
+
+## Pipeline
+
+Full rebuild (`/index`) uses a two-tier agent pipeline to keep costs down:
+
+- **`index-planner`** (Sonnet) — scans structure, decides 5-10 topics, dispatches writers, assembles INDEX.md.
+- **`index-writer`** (Haiku) — one per topic, reads the topic's files and writes the topic file. Run in parallel.
+
+Incremental updates (`/index update`) skip the planner — Haiku writers regenerate only the affected topics.
 
 ## Detail levels
 
@@ -42,7 +51,7 @@ Auto-selected based on project size. Override with `--compact` or `--detailed`.
 
 ## Nested projects
 
-Sub-projects (detected by `.git/`, `.claude/index/`) get a pointer in the parent's INDEX.md. Each project manages its own index independently.
+Sub-projects (detected by `.git/`, `.claude/index/`, or language-specific markers) get a pointer in the parent's INDEX.md. Each project manages its own index independently.
 
 ## Plugin components
 
@@ -50,6 +59,7 @@ Sub-projects (detected by `.git/`, `.claude/index/`) get a pointer in the parent
 |---|---|---|
 | Command | `commands/index.md` | `/index` slash command |
 | Skill | `skills/project-index/SKILL.md` | How Claude uses the index |
-| Skill | `skills/index-generator/SKILL.md` | How to generate/update index |
-| Agent | `agents/indexer.md` | Subagent for scanning |
-| Hook | `hooks/track-changes.sh` | Track file changes |
+| Skill | `skills/index-generator/SKILL.md` | Shared format reference |
+| Agent | `agents/index-planner.md` | Sonnet planner — dispatches writers |
+| Agent | `agents/index-writer.md` | Haiku per-topic worker |
+| Hook | `hooks/track-changes.sh` | Tracks file edits to pending.md |
