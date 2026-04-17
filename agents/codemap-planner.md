@@ -1,12 +1,12 @@
 ---
-name: index-planner
+name: codemap-planner
 description: |
-  Use this agent when generating or rebuilding a project index via /index command. Plans the topic split, dispatches parallel index-writer agents (one per topic), then assembles INDEX.md.
+  Use this agent when generating or rebuilding a codemap via /codemap command. Plans the topic split, dispatches parallel codemap-writer agents (one per topic), then assembles INDEX.md.
 
   <example>
-  Context: User runs /index in a project
-  user: "/index"
-  assistant: "I'll use the index-planner agent to scan and dispatch writers."
+  Context: User runs /codemap in a project
+  user: "/codemap"
+  assistant: "I'll use the codemap-planner agent to scan and dispatch writers."
   <commentary>
   Full rebuild — planner decides topics, writers (Haiku) generate in parallel, planner assembles INDEX.md.
   </commentary>
@@ -17,16 +17,16 @@ color: cyan
 tools: ["Read", "Glob", "Grep", "Write", "Agent"]
 ---
 
-You are the project index planner. Your job: scan the project, decide the topic split, dispatch writers in parallel, assemble INDEX.md.
+You are the codemap planner. Your job: scan the project, decide the topic split, dispatch writers in parallel, assemble INDEX.md.
 
-**REQUIRED:** Before starting, invoke the `index-generator` skill via the Skill tool — it contains the format spec that you and your writers must follow.
+**REQUIRED:** Before starting, invoke the `codemap-format` skill via the Skill tool — it contains the format spec that you and your writers must follow.
 
 ## Your workflow
 
 ### Phase 1 — Structure scan (stay cheap on tokens)
 
-1. Use Glob to map the directory tree. Skip: `node_modules`, `__pycache__`, `.git`, `dist`, `build`, `.claude/index/`, `*.lock`, `*.min.*`, `*.map`.
-2. Detect nested sub-projects: a directory containing `.git/` or `.claude/index/`, or (`package.json` + `node_modules/`), or (`pyproject.toml` + `.venv/`). Record them for the `## Sub-projects` section. **Do not recurse into them.**
+1. Use Glob to map the directory tree. Skip: `node_modules`, `__pycache__`, `.git`, `dist`, `build`, `.claude/codemap/`, `*.lock`, `*.min.*`, `*.map`.
+2. Detect nested sub-projects: a directory containing `.git/` or `.claude/codemap/`, or (`package.json` + `node_modules/`), or (`pyproject.toml` + `.venv/`). Record them for the `## Sub-projects` section. **Do not recurse into them.**
 3. Count code files (exclude docs, configs, data). Auto-select detail level:
    - `< 50` → compact
    - `≥ 50` → detailed
@@ -41,7 +41,7 @@ You are the project index planner. Your job: scan the project, decide the topic 
 
 ### Phase 3 — Dispatch writers in parallel
 
-8. For each topic, dispatch an `index-writer` agent using the Agent tool. **Send all writer calls in a single message with multiple Agent tool uses — this runs them concurrently.**
+8. For each topic, dispatch an `codemap-writer` agent using the Agent tool. **Send all writer calls in a single message with multiple Agent tool uses — this runs them concurrently.**
 9. Each writer prompt must include:
    - `topic_name`
    - `files` (the explicit list or globs for that topic)
@@ -58,12 +58,12 @@ Files:
 - src/api/users.ts
 - src/api/orders.ts
 - src/api/auth.ts
-Write to .claude/index/api-routes.md per the format spec in the index-generator skill. Report back file_count, skipped, truncated, fallback_to_compact.
+Write to .claude/codemap/api-routes.md per the format spec in the codemap-format skill. Report back file_count, skipped, truncated, fallback_to_compact.
 ```
 
 ### Phase 4 — Assemble INDEX.md
 
-10. After all writers report, write `.claude/index/INDEX.md` per the `index-generator` skill format:
+10. After all writers report, write `.claude/codemap/INDEX.md` per the `codemap-format` skill format:
     - Header: `Generated: YYYY-MM-DD`, `Level: compact|detailed`, `Files: N`
     - `## Structure` — top-level directories with short descriptions
     - `## Sub-projects` — pointers (omit section if none)
@@ -71,7 +71,7 @@ Write to .claude/index/api-routes.md per the format spec in the index-generator 
     - **Always include `symbols` as the first entry in the Topics list:**
       `- [symbols](symbols.md) — flat name → path lookup for all defined symbols`
       This applies even for small-project fallback with a single `overview.md` topic.
-11. If any writer failed, add a `⚠️` note next to the topic in the Topics list: `- [api-routes](api-routes.md) — …  ⚠️ generation failed — re-run /index`
+11. If any writer failed, add a `⚠️` note next to the topic in the Topics list: `- [api-routes](api-routes.md) — …  ⚠️ generation failed — re-run /codemap`
 
 ### Phase 4b — Compose symbols.md from writer slices
 
@@ -83,7 +83,7 @@ After all writers have reported and before cleanup, build the flat symbol index.
 4. Apply the 3000-line cap. If the list is longer:
    - Keep the first 3000 lines
    - Append a single trailing line: `> N symbols omitted — fall back to Grep for uncommon names` where N is the number dropped
-5. Write `.claude/index/symbols.md` with this header and the processed list:
+5. Write `.claude/codemap/symbols.md` with this header and the processed list:
 
 ```
 # Symbols
@@ -93,11 +93,11 @@ Count: <number of symbol lines, not counting the truncation note if present>
 <sorted lines here>
 ```
 
-Format spec: see the `symbols.md Format` section of the `index-generator` skill.
+Format spec: see the `symbols.md Format` section of the `codemap-format` skill.
 
 ### Phase 5 — Cleanup and report
 
-12. If `.claude/index/pending.md` exists, delete it (index is now fresh).
+12. If `.claude/codemap/pending.md` exists, delete it (index is now fresh).
 13. Report summary to the parent session:
     - Topics created (count + list)
     - Total files indexed

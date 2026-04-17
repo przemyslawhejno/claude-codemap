@@ -1,16 +1,16 @@
 ---
-name: index-generator
-description: Use when generating or updating project index content — invoked by /index command, index-planner, and index-writer agents as the shared format reference
+name: codemap-format
+description: Use when generating or updating codemap content — invoked by /codemap command, codemap-planner, and codemap-writer agents as the shared format reference
 ---
 
-# Index Generator — Format Reference
+# Codemap — Format Reference
 
-Shared format spec for `.claude/index/` files. Read this if you are the `index-planner`, `index-writer`, or the main session running `/index update`.
+Shared format spec for `.claude/codemap/` files. Read this if you are the `codemap-planner`, `codemap-writer`, or the main session running `/codemap update`.
 
-## Index Structure
+## Codemap Structure
 
 ```
-.claude/index/
+.claude/codemap/
 ├── INDEX.md      — TOC: project tree + topic list (~50-80 lines max)
 ├── pending.md    — change queue (hook-managed)
 └── *.md          — topic files (5-10 files, ~100-200 lines each)
@@ -25,12 +25,12 @@ Auto-selected based on code file count:
 | compact  | <50 code files  | `path — description` per file                   |
 | detailed | 50+ code files  | `path` + indented signatures + descriptions     |
 
-Override via `/index --compact` or `/index --detailed`.
+Override via `/codemap --compact` or `/codemap --detailed`.
 
 ## INDEX.md Format
 
 ```
-# Project Index
+# Codemap
 Generated: YYYY-MM-DD
 Level: compact|detailed
 Files: N
@@ -71,7 +71,7 @@ path/to/other.ext — what this file does
 
 ## symbols.md Format
 
-Flat, alphabetical-by-name symbol index for one-read "where is X?" lookups. Produced once per rebuild and kept in lockstep with topic files on `/index update`.
+Flat, alphabetical-by-name symbol index for one-read "where is X?" lookups. Produced once per rebuild and kept in lockstep with topic files on `/codemap update`.
 
 ```
 # Symbols
@@ -79,7 +79,7 @@ Generated: YYYY-MM-DD
 Count: N
 
 [class] AuthService → src/auth/service.ts:12
-[cmd]   index → commands/index.md:1
+[cmd]   codemap → commands/codemap.md:1
 [component] LoginForm → web/src/LoginForm.tsx:8
 [const] MAX_RETRIES → src/config.ts:5
 [enum]  Status → src/types.ts:20
@@ -115,7 +115,7 @@ Count: N
 ## Skip List (Structure Scan)
 
 Skip these during Glob/Grep:
-- `node_modules`, `__pycache__`, `.git`, `dist`, `build`, `.claude/index/`
+- `node_modules`, `__pycache__`, `.git`, `dist`, `build`, `.claude/codemap/`
 - `*.lock`, `*.min.*`, `*.map`
 - Binaries and generated files
 
@@ -123,7 +123,7 @@ Skip these during Glob/Grep:
 
 A directory is a nested sub-project if it contains any of:
 - `.git/`
-- `.claude/index/`
+- `.claude/codemap/`
 - `package.json` + `node_modules/`
 - `pyproject.toml` + `.venv/`
 
@@ -139,23 +139,23 @@ Add a pointer in INDEX.md under `## Sub-projects`. Do not recurse into it.
 
 ## Incremental Update Thresholds (pending.md)
 
-Applied by the `project-index` skill when Claude sees `pending.md`:
+Applied by the `codemap-usage` skill when Claude sees `pending.md`:
 
 | Unique files in pending.md | Action                                                  |
 |----------------------------|---------------------------------------------------------|
 | ≤ 15                       | Main session updates affected topic files inline        |
-| 16–50                      | Suggest `/index update` (Haiku writers, per topic)      |
-| > 50                       | Suggest full `/index` rebuild                           |
+| 16–50                      | Suggest `/codemap update` (Haiku writers, per topic)      |
+| > 50                       | Suggest full `/codemap` rebuild                           |
 
 ## First Run in a Project
 
-After generating `.claude/index/`, append to project's CLAUDE.md:
+After generating `.claude/codemap/`, append to project's CLAUDE.md:
 
 ```
-## Project Index
-This project uses `.claude/index/` for fast file lookup.
-Before searching for files, read `.claude/index/INDEX.md` to find relevant topic files.
-If `.claude/index/pending.md` exists, update affected topic files before answering.
-Run `/index update` when `.claude/index/pending.md` grows large; `/index` for full rebuild.
+## Codemap
+This project uses `.claude/codemap/` for fast file lookup.
+Before searching for files, read `.claude/codemap/INDEX.md` to find relevant topic files.
+If `.claude/codemap/pending.md` exists, update affected topic files before answering.
+Run `/codemap update` when `.claude/codemap/pending.md` grows large; `/codemap` for full rebuild.
 After completing a task, suggest `/compact` if context is heavy.
 ```
