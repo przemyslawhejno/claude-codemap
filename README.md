@@ -8,6 +8,16 @@ Claude Code plugin that generates a codemap for fast file lookup and symbol navi
 claude plugins install /path/to/claude-codemap
 ```
 
+### Unqualified `/codemap` command (optional)
+
+Plugin commands are namespaced as `/claude-codemap:codemap`. To expose it as plain `/codemap`, symlink the plugin's command file into your user commands:
+
+```bash
+bash scripts/relink-user-command.sh
+```
+
+Re-run after upgrading the plugin (the cache path includes the version).
+
 ## When to run what
 
 | Command | When to use | What runs |
